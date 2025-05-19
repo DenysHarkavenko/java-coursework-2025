@@ -1,0 +1,489 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_user_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: users
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: phone
+                  type: VARCHAR(20)
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_user_email
+            tableName: users
+            columns:
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+        - createIndex:
+            indexName: idx_user_role
+            tableName: users
+            columns:
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+
+
+  - changeSet:
+      id: create_service_center_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: service_center
+      changes:
+        - createTable:
+            tableName: service_center
+            columns:
+              - column:
+                  name: center_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rating
+                  type: DECIMAL(3,2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: street
+                  type: VARCHAR(200)
+              - column:
+                  name: city
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: region
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: country
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_service_center_location
+            tableName: service_center
+            columns:
+              - column:
+                  name: city
+                  type: VARCHAR(100)
+              - column:
+                  name: region
+                  type: VARCHAR(100)
+              - column:
+                  name: country
+                  type: VARCHAR(100)
+        - createIndex:
+            indexName: idx_service_center_rating
+            tableName: service_center
+            columns:
+              - column:
+                  name: rating
+                  type: DECIMAL(3,2)
+
+  - changeSet:
+      id: create_service_type_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: service_type
+      changes:
+        - createTable:
+            tableName: service_type
+            columns:
+              - column:
+                  name: service_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: category
+                  type: VARCHAR(50)
+        - createIndex:
+            indexName: idx_service_type_category
+            tableName: service_type
+            columns:
+              - column:
+                  name: category
+                  type: VARCHAR(50)
+
+  - changeSet:
+      id: create_service_center_service_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: service_center_service
+      changes:
+        - createTable:
+            tableName: service_center_service
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: center_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_service_center_service_center
+                    referencedTableName: service_center
+                    referencedColumnNames: center_id
+              - column:
+                  name: service_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_service_center_service_type
+                    referencedTableName: service_type
+                    referencedColumnNames: service_id
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+              - column:
+                  name: duration
+                  type: INTEGER
+                  remarks: Тривалість у хвилинах
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: service_center_service
+            columnNames: center_id, service_id
+            constraintName: uq_service_center_service
+        - createIndex:
+            indexName: idx_service_center_service_price
+            tableName: service_center_service
+            columns:
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+
+  - changeSet:
+      id: create_feedback_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: feedback
+      changes:
+        - createTable:
+            tableName: feedback
+            columns:
+              - column:
+                  name: feedback_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_feedback_user
+                    referencedTableName: users
+                    referencedColumnNames: user_id
+              - column:
+                  name: center_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_feedback_service_center
+                    referencedTableName: service_center
+                    referencedColumnNames: center_id
+              - column:
+                  name: rating
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: comment
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_feedback_center_rating
+            tableName: feedback
+            columns:
+              - column:
+                  name: center_id
+                  type: UUID
+              - column:
+                  name: rating
+                  type: SMALLINT
+        - createIndex:
+            indexName: idx_feedback_created_at
+            tableName: feedback
+            columns:
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+
+  - changeSet:
+      id: create_appointment_slot_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: appointment_slot
+      changes:
+        - createTable:
+            tableName: appointment_slot
+            columns:
+              - column:
+                  name: slot_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: center_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_appointment_slot_service_center
+                    referencedTableName: service_center
+                    referencedColumnNames: center_id
+              - column:
+                  name: date_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_available
+                  type: BOOLEAN
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_appointment_slot_center_datetime
+            tableName: appointment_slot
+            columns:
+              - column:
+                  name: center_id
+                  type: UUID
+              - column:
+                  name: date_time
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_appointment_slot_availability
+            tableName: appointment_slot
+            columns:
+              - column:
+                  name: is_available
+                  type: BOOLEAN
+
+  - changeSet:
+      id: create_service_request_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: service_request
+      changes:
+        - createTable:
+            tableName: service_request
+            columns:
+              - column:
+                  name: request_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_service_request_user
+                    referencedTableName: users
+                    referencedColumnNames: user_id
+              - column:
+                  name: center_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_service_request_service_center
+                    referencedTableName: service_center
+                    referencedColumnNames: center_id
+              - column:
+                  name: service_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: request_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: slot_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_service_request_appointment_slot
+                    referencedTableName: appointment_slot
+                    referencedColumnNames: slot_id
+        - createIndex:
+            indexName: idx_service_request_user_status
+            tableName: service_request
+            columns:
+              - column:
+                  name: user_id
+                  type: UUID
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+        - createIndex:
+            indexName: idx_service_request_center_status
+            tableName: service_request
+            columns:
+              - column:
+                  name: center_id
+                  type: UUID
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+        - createIndex:
+            indexName: idx_service_request_slot
+            tableName: service_request
+            columns:
+              - column:
+                  name: slot_id
+                  type: UUID
+
+  - changeSet:
+      id: create_notification_table
+      author: author
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: notification
+      changes:
+        - createTable:
+            tableName: notification
+            columns:
+              - column:
+                  name: notification_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_notification_user
+                    referencedTableName: users
+                    referencedColumnNames: user_id
+              - column:
+                  name: message
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_notification_user_created
+            tableName: notification
+            columns:
+              - column:
+                  name: user_id
+                  type: UUID
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
